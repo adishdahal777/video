@@ -325,13 +325,11 @@ function handleLeaveRoom(ws, data) {
 
   if (!rooms[roomId]) return
 
-  // Remove client from room
   const index = rooms[roomId].clients.indexOf(ws.id)
   if (index !== -1) {
     rooms[roomId].clients.splice(index, 1)
     delete rooms[roomId].clientsMap[ws.id]
 
-    // Notify other clients that this user disconnected
     rooms[roomId].clients.forEach((clientId) => {
       const client = rooms[roomId].clientsMap[clientId]
       if (client && client.readyState === WebSocket.OPEN) {
@@ -340,11 +338,11 @@ function handleLeaveRoom(ws, data) {
             type: "user_disconnected",
             peerId: ws.id,
             room: roomId,
-          }),
+          })
         )
       }
-    }
-    // If room is empty, delete it\
+    })
+
     if (rooms[roomId].clients.length === 0) {
       delete rooms[roomId]
       console.log(`Room deleted: ${roomId}`)
@@ -354,37 +352,38 @@ function handleLeaveRoom(ws, data) {
   }
 }
 
-// Handle chat message
-function handleChatMessage(ws, data) {
-  const roomId = data.room
 
-  if (!rooms[roomId]) return
+  // Handle chat message
+  function handleChatMessage(ws, data) {
+    const roomId = data.room
 
-  // Forward chat message to all other clients in the room
-  rooms[roomId].clients.forEach((clientId) => {
-    if (clientId !== ws.id) {
-      const client = rooms[roomId].clientsMap[clientId]
-      if (client && client.readyState === WebSocket.OPEN) {
-        client.send(
-          JSON.stringify({
-            type: "chat_message",
-            sender: `Participant ${ws.id.substring(0, 4)}`,
-            message: data.message,
-            room: roomId,
-          }),
-        )
+    if (!rooms[roomId]) return
+
+    // Forward chat message to all other clients in the room
+    rooms[roomId].clients.forEach((clientId) => {
+      if (clientId !== ws.id) {
+        const client = rooms[roomId].clientsMap[clientId]
+        if (client && client.readyState === WebSocket.OPEN) {
+          client.send(
+            JSON.stringify({
+              type: "chat_message",
+              sender: `Participant ${ws.id.substring(0, 4)}`,
+              message: data.message,
+              room: roomId,
+            }),
+          )
+        }
       }
-    }
+    })
+  }
+
+  // Generate a unique ID
+  function generateId() {
+    return Math.random().toString(36).substring(2, 10)
+  }
+
+  // Start the server
+  const PORT = process.env.PORT || 3000
+  server.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`)
   })
-}
-
-// Generate a unique ID
-function generateId() {
-  return Math.random().toString(36).substring(2, 10)
-}
-
-// Start the server
-const PORT = process.env.PORT || 3000
-server.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`)
-})
