@@ -99,8 +99,22 @@ async function init() {
     // Set up event listeners
     setupEventListeners()
   } catch (error) {
-    showToast(`Error accessing media devices: ${error.message}`)
     console.error("Error accessing media devices:", error)
+
+    // More detailed error message
+    if (error.name === "NotFoundError" || error.name === "DevicesNotFoundError") {
+      showToast("No camera or microphone found. Please connect a device and try again.")
+    } else if (error.name === "NotAllowedError" || error.name === "PermissionDeniedError") {
+      showToast("Permission denied. Please allow access to camera and microphone.")
+    } else if (error.name === "NotReadableError" || error.name === "TrackStartError") {
+      showToast("Your camera or microphone is already in use by another application.")
+    } else if (error.name === "OverconstrainedError") {
+      showToast("No device satisfies the constraints required.")
+    } else if (error.name === "TypeError") {
+      showToast("HTTPS is required for accessing media devices.")
+    } else {
+      showToast(`Error accessing media devices: ${error.message}`)
+    }
   }
 }
 
