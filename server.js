@@ -11,50 +11,76 @@ const server = http.createServer((req, res) => {
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
   res.setHeader("Access-Control-Allow-Headers", "Content-Type")
 
+  // Handle OPTIONS request for CORS preflight
+  if (req.method === "OPTIONS") {
+    res.writeHead(200)
+    res.end()
+    return
+  }
+
   const parsedUrl = url.parse(req.url)
-  let filePath = "." + parsedUrl.pathname
+  let filePath = path.join(__dirname, parsedUrl.pathname)
 
-  if (filePath === "./") {
-    filePath = "./index.html"
+  // Default to index.html for root path
+  if (parsedUrl.pathname === "/") {
+    filePath = path.join(__dirname, "index.html")
   }
 
-  const extname = path.extname(filePath)
-  let contentType = "text/html"
+  // Check if file exists
+  fs.stat(filePath, (err, stats) => {
+    if (err) {
+      // File not found
+      console.log(`File not found: ${filePath}`)
+      res.writeHead(404, { "Content-Type": "text/html" })
+      res.end("<h1>404 Not Found</h1>")
+      return
+    }
 
-  switch (extname) {
-    case ".js":
-      contentType = "text/javascript"
-      break
-    case ".css":
-      contentType = "text/css"
-      break
-    case ".json":
-      contentType = "application/json"
-      break
-    case ".png":
-      contentType = "image/png"
-      break
-    case ".jpg":
-      contentType = "image/jpg"
-      break
-  }
+    // If it's a directory, try to serve index.html
+    if (stats.isDirectory()) {
+      filePath = path.join(filePath, "index.html")
+    }
 
-  fs.readFile(filePath, (error, content) => {
-    if (error) {
-      if (error.code === "ENOENT") {
-        // File not found
-        res.writeHead(404, { "Content-Type": "text/html" })
-        res.end("404 Not Found")
-      } else {
-        // Server error
-        res.writeHead(500)
-        res.end(`Server Error: ${error.code}`)
+    // Determine content type
+    const extname = path.extname(filePath)
+    let contentType = "text/html"
+
+    switch (extname) {
+      case ".js":
+        contentType = "text/javascript"
+        break
+      case ".css":
+        contentType = "text/css"
+        break
+      case ".json":
+        contentType = "application/json"
+        break
+      case ".png":
+        contentType = "image/png"
+        break
+      case ".jpg":
+      case ".jpeg":
+        contentType = "image/jpeg"
+        break
+    }
+
+    // Read and serve the file
+    fs.readFile(filePath, (err, content) => {
+      if (err) {
+        if (err.code === "ENOENT") {
+          res.writeHead(404, { "Content-Type": "text/html" })
+          res.end("<h1>404 Not Found</h1>")
+        } else {
+          res.writeHead(500)
+          res.end(`Server Error: ${err.code}`)
+        }
+        return
       }
-    } else {
+
       // Success
       res.writeHead(200, { "Content-Type": contentType })
       res.end(content, "utf-8")
-    }
+    })
   })
 })
 
@@ -317,9 +343,8 @@ function handleLeaveRoom(ws, data) {
           }),
         )
       }
-    })
-
-    // If room is empty, delete it
+    }
+    // If room is empty, delete it\
     if (rooms[roomId].clients.length === 0) {
       delete rooms[roomId]
       console.log(`Room deleted: ${roomId}`)
