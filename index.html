@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ConnectNow | Video Calling App</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .glass {
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    .video-container {
+      aspect-ratio: 16/9;
+    }
+    .video-off-placeholder {
+      background-color: #1f2937;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 3rem;
+    }
+    .gradient-bg {
+      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    }
+  </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+  <div class="container mx-auto px-4 py-8">
+    <!-- Header -->
+    <header class="flex justify-between items-center mb-8">
+      <div class="flex items-center">
+        <h1 class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-purple-600">
+          ConnectNow
+        </h1>
+      </div>
+      
+      <div id="connection-status" class="hidden px-4 py-2 rounded-full text-sm font-medium">
+        Connecting...
+      </div>
+      
+      <div id="room-controls" class="flex items-center space-x-4">
+        <input type="text" id="room-input" placeholder="Enter room ID" 
+          class="px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        <button id="join-btn" class="px-6 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 transition-colors">
+          Join Room
+        </button>
+        <button id="create-btn" class="px-6 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 transition-colors">
+          Create Room
+        </button>
+      </div>
+    </header>
+
+    <!-- Room Info -->
+    <div id="room-info" class="hidden mb-6 p-4 rounded-lg glass">
+      <div class="flex justify-between items-center">
+        <div>
+          <h2 class="text-xl font-semibold">Room: <span id="room-id-display">Loading...</span></h2>
+          <p class="text-gray-300">Share this room ID with others to join</p>
+          <p class="text-gray-300 mt-1">Participants: <span id="participant-count">1</span>/4</p>
+        </div>
+        <button id="copy-room-id" class="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors">
+          <i class="fas fa-copy mr-2"></i> Copy ID
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <main id="call-container" class="hidden">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Video Grid -->
+        <div class="lg:col-span-2">
+          <div id="videos-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Local Video -->
+            <div class="relative rounded-xl overflow-hidden video-container bg-gray-800">
+              <video id="localVideo" autoplay muted playsinline class="w-full h-full object-cover"></video>
+              <div id="local-video-off" class="absolute inset-0 video-off-placeholder hidden">
+                <i class="fas fa-user-circle"></i>
+              </div>
+              <div class="absolute bottom-4 left-4 px-3 py-1 rounded-lg glass text-sm">
+                You (Local)
+              </div>
+            </div>
+            
+            <!-- Remote videos will be added dynamically -->
+          </div>
+
+          <!-- Call Controls -->
+          <div class="mt-6 flex justify-center space-x-4">
+            <button id="mic-btn" class="p-4 rounded-full bg-gray-700 hover:bg-gray-600 transition-colors">
+              <i class="fas fa-microphone"></i>
+            </button>
+            <button id="camera-btn" class="p-4 rounded-full bg-gray-700 hover:bg-gray-600 transition-colors">
+              <i class="fas fa-video"></i>
+            </button>
+            <button id="screen-btn" class="p-4 rounded-full bg-gray-700 hover:bg-gray-600 transition-colors">
+              <i class="fas fa-desktop"></i>
+            </button>
+            <button id="end-call-btn" class="p-4 rounded-full bg-red-600 hover:bg-red-700 transition-colors">
+              <i class="fas fa-phone-slash"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Chat Section -->
+        <div class="rounded-xl glass p-4 flex flex-col h-[600px]">
+          <h2 class="text-xl font-semibold mb-4">Chat</h2>
+          <div id="chat-messages" class="flex-grow overflow-y-auto mb-4 space-y-3 p-2">
+            <div class="text-center text-gray-400 text-sm">
+              Chat messages will appear here
+            </div>
+          </div>
+          <div class="flex">
+            <input type="text" id="chat-input" placeholder="Type a message..." 
+              class="flex-grow px-4 py-2 rounded-l-lg bg-gray-800 border border-gray-700 focus:outline-none">
+            <button id="send-msg-btn" class="px-4 py-2 rounded-r-lg bg-indigo-600 hover:bg-indigo-700 transition-colors">
+              <i class="fas fa-paper-plane"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Welcome Screen -->
+    <div id="welcome-screen" class="flex flex-col items-center justify-center py-16">
+      <div class="text-center max-w-2xl">
+        <h2 class="text-4xl font-bold mb-6">Welcome to ConnectNow</h2>
+        <p class="text-xl text-gray-300 mb-8">
+          High-quality video calls with screen sharing and chat functionality.
+          Create a room or join an existing one to get started.
+        </p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="p-6 rounded-xl glass">
+            <i class="fas fa-video text-4xl text-indigo-500 mb-4"></i>
+            <h3 class="text-xl font-semibold mb-2">Crystal Clear Video</h3>
+            <p class="text-gray-300">Experience high-quality video calls with friends and colleagues.</p>
+          </div>
+          <div class="p-6 rounded-xl glass">
+            <i class="fas fa-desktop text-4xl text-purple-500 mb-4"></i>
+            <h3 class="text-xl font-semibold mb-2">Screen Sharing</h3>
+            <p class="text-gray-300">Share your screen for presentations and collaboration.</p>
+          </div>
+          <div class="p-6 rounded-xl glass">
+            <i class="fas fa-comments text-4xl text-indigo-500 mb-4"></i>
+            <h3 class="text-xl font-semibold mb-2">Integrated Chat</h3>
+            <p class="text-gray-300">Send messages while on a call for enhanced communication.</p>
+          </div>
+          <div class="p-6 rounded-xl glass">
+            <i class="fas fa-lock text-4xl text-purple-500 mb-4"></i>
+            <h3 class="text-xl font-semibold mb-2">Private Rooms</h3>
+            <p class="text-gray-300">Create private rooms and share the ID only with those you want to join.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed top-4 right-4 px-6 py-3 rounded-lg glass hidden">
+    <span id="toast-message">Notification message</span>
+  </div>
+
+  <script src="client.js"></script>
+</body>
+</html>
