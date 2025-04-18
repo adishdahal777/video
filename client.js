@@ -1,5 +1,5 @@
 // Configuration
-const SIGNALING_SERVER = "wss://cf9e-2400-1a00-bd11-e08c-8619-943e-70fa-7e29.ngrok-free.app"
+const SIGNALING_SERVER = "wss://1923-2400-1a00-bd11-e08c-8619-943e-70fa-7e29.ngrok-free.app"
 const ICE_SERVERS = [
   { urls: "stun:stun.l.google.com:19302" },
   { urls: "stun:stun1.l.google.com:19302" },
