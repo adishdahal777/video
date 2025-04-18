@@ -1,15 +1,17 @@
 {
-  "name": "video",
+  "name": "video-call-app",
   "version": "1.0.0",
+  "description": "WebRTC video calling application",
   "main": "server.js",
   "scripts": {
-    "start": "http-server -p $PORT"
+    "start": "node server.js",
+    "dev": "http-server -p 8080"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
-    "ws": "^8.18.1"
+    "ws": "^8.13.0",
+    "http-server": "^14.1.1"
   },
-  "description": ""
+  "engines": {
+    "node": ">=14.0.0"
+  }
 }
