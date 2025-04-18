@@ -1,5 +1,5 @@
 // Configuration
-const SIGNALING_SERVER = "wss://ca24-2400-1a00-bd11-e08c-8619-943e-70fa-7e29.ngrok-free.app"
+const SIGNALING_SERVER = "wss://video-production.up.railway.app"
 const ICE_SERVERS = [
   { urls: "stun:stun.l.google.com:19302" },
   { urls: "stun:stun1.l.google.com:19302" },
@@ -449,7 +449,6 @@ function toggleCamera() {
         cameraBtn.innerHTML = '<i class="fas fa-video"></i>'
         cameraBtn.classList.remove("bg-red-600")
         cameraBtn.classList.add("bg-gray-700")
-        localVideoOff.classList.add("hidden")
       }
     }
   }

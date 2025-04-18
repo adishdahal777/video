@@ -6,6 +6,11 @@ const url = require("url")
 
 // Create HTTP server
 const server = http.createServer((req, res) => {
+  // Add CORS headers for all responses
+  res.setHeader("Access-Control-Allow-Origin", "*")
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type")
+
   const parsedUrl = url.parse(req.url)
   let filePath = "." + parsedUrl.pathname
 
@@ -38,10 +43,8 @@ const server = http.createServer((req, res) => {
     if (error) {
       if (error.code === "ENOENT") {
         // File not found
-        fs.readFile("./404.html", (error, content) => {
-          res.writeHead(404, { "Content-Type": "text/html" })
-          res.end(content, "utf-8")
-        })
+        res.writeHead(404, { "Content-Type": "text/html" })
+        res.end("404 Not Found")
       } else {
         // Server error
         res.writeHead(500)
@@ -56,7 +59,13 @@ const server = http.createServer((req, res) => {
 })
 
 // Create WebSocket server
-const wss = new WebSocket.Server({ server })
+const wss = new WebSocket.Server({
+  server,
+  // Add these options for Railway deployment
+  perMessageDeflate: false,
+  clientTracking: true,
+  maxPayload: 50 * 1024 * 1024, // 50MB
+})
 
 // Store active rooms and their participants
 const rooms = {}
@@ -113,6 +122,15 @@ wss.on("connection", (ws) => {
       }
     }
   })
+
+  // Send a ping every 30 seconds to keep the connection alive
+  const pingInterval = setInterval(() => {
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.ping()
+    } else {
+      clearInterval(pingInterval)
+    }
+  }, 30000)
 })
 
 // Handle room creation
@@ -343,5 +361,5 @@ function generateId() {
 // Start the server
 const PORT = process.env.PORT || 3000
 server.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`)
+  console.log(`Server is running on port ${PORT}`)
 })
